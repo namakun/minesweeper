@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Minesweeper</title>
+    <style>
+      /* 画面全体のスタイル */
+      body {
+        height: 50vh; /* 高さを50vhに調整 */
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        background-color: black; /* 背景を黒に */
+      }
+      /* タイトルのスタイル */
+      h1 {
+        color: white;
+        margin-bottom: 20px;
+      }
+      /* マインスイーパーのゲームエリア */
+      #game {
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        background-color: #dfdfdf;
+      }
+
+      /* 各セルのスタイル */
+      .cell {
+        display: inline-flex;
+        justify-content: center;
+        align-items: center;
+        box-sizing: border-box;
+        box-sizing: border-box;
+        width: 30px;
+        height: 30px;
+        border: 1px solid #909090;
+        font-size: 28px;
+        background-color: #dfdfdf; /* セルの背景色を灰色に */
+        color: #fff; /* セルの文字色を白に */
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Minesweeper Game</h1>
+    <button id="restartButton">Restart Game</button>
+    <div id="game"></div>
+    <div id="gameOverMessage" style="visibility: hidden; color: red; font-size: 24px; position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%)">Game Over!</div>
+    <div id="gameClearMessage" style="visibility: hidden; color: green; font-size: 24px; position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%)">Game Clear!</div>
+
+    <script type="module">
+      import init, { Board } from "./pkg/minesweeper.js";
+
+      let board;
+      let firstClick = true; // 最初のクリックを追跡するフラグ
+      let gameOver = false; // ゲームオーバー状態を追跡
+
+      document.getElementById("restartButton").addEventListener("click", restartGame);
+
+      async function run() {
+        await init(); // WASMモジュールの初期化
+        restartGame(); // 初期ロード時にもゲームをリスタート
+      }
+
+      function restartGame() {
+        board = Board.new(9, 9); // 新しいボードを生成
+        firstClick = true;
+        gameOver = false;
+        updateUI(board);
+      }
+
+      function updateUI(board) {
+        // updateUI関数内でのセル状態の確認
+        const gameContainer = document.getElementById("game");
+        gameContainer.innerHTML = "";
+
+        for (let y = 0; y < 9; y++) {
+          const rowDiv = document.createElement("div");
+          rowDiv.style.display = "flex";
+
+          for (let x = 0; x < 9; x++) {
+            const cellDiv = document.createElement("div");
+            cellDiv.classList.add("cell");
+
+            // セルを左クリックしたときのイベントハンドラ
+            cellDiv.addEventListener("click", (e) => {
+              e.preventDefault();
+              if (gameOver || board.get_cell_state(x, y).is_flagged) return; // ゲームオーバーまたは旗が立っているセルは操作不可
+              if (!board.get_cell_state(x, y).is_open) {
+                // セルが既に開いていない場合にのみ処理
+                handleCellClick(board, x, y, cellDiv);
+              }
+            });
+
+            // セルを右クリックしたときのイベントハンドラ
+            cellDiv.addEventListener("contextmenu", (e) => {
+              e.preventDefault(); // デフォルトのコンテキストメニューを防止
+              if (gameOver) return; // ゲームオーバー時は操作不可
+              if (!board.get_cell_state(x, y).is_open) {
+                // セルが既に開いていない場合にのみ旗を切り替え
+                board.toggle_flag(x, y);
+                handleFlagToggle(cellDiv, board.get_cell_state(x, y));
+              }
+            });
+
+            rowDiv.appendChild(cellDiv);
+          }
+          gameContainer.appendChild(rowDiv);
+        }
+      }
+      function updateCellUI(x, y) {
+        const cellState = board.get_cell_state(x, y);
+        const cellDiv = document.querySelector(`#game div:nth-child(${y + 1}) div:nth-child(${x + 1})`);
+
+        // セルの状態が開いている場合、背景色とテキストを更新
+        if (cellState.is_open) {
+          const minesAround = board.count_mines_around(x, y);
+          cellDiv.textContent = minesAround > 0 ? minesAround : "";
+          cellDiv.style.backgroundColor = "#bfbfbf";
+        }
+
+        // 旗が立っている場合の処理もここに追加
+        // ...
+      }
+
+      function handleFlagToggle(cellDiv, cellState) {
+        if (cellState.is_flagged) {
+          cellDiv.textContent = "🚩"; // 旗を表示
+        } else {
+          // 旗が取り除かれた場合、セルが開いていれば周囲の地雷数を表示（開いていなければ何も表示しない）
+          cellDiv.textContent = cellState.is_open ? cellState.mines_around.toString() : "";
+        }
+      }
+
+      function handleCellClick(board, x, y, cellDiv) {
+        const changedCells = board.open_cell(x, y);
+        changedCells.forEach((cell) => {
+          updateCellUI(cell.x, cell.y); // `updateCellUI`はセルのUIを更新するJavaScript関数
+        });
+
+        if (board.is_game_over()) {
+          gameOver = true; // ゲームオーバー状態を更新
+          revealMines(board); // すべての地雷を表示する関数を呼び出す
+          const gameOverMessage = document.getElementById("gameOverMessage");
+          gameOverMessage.style.visibility = "visible"; // メッセージを表示
+        }
+
+        if (!gameOver && board.check_win()) {
+          // ゲームオーバーでない、かつ勝利条件を満たす場合
+          // ゲームクリアメッセージを表示するロジックをここに追加
+          const gameClearMessage = document.getElementById("gameClearMessage");
+          gameClearMessage.style.visibility = "visible"; // ゲームクリアメッセージを表示
+        }
+      }
+
+      function revealMines(board) {
+        // すべてのセルを走査して地雷を表示
+        for (let y = 0; y < 9; y++) {
+          for (let x = 0; x < 9; x++) {
+            const cell = document.querySelector(`#game div:nth-child(${y + 1}) div:nth-child(${x + 1})`);
+            if (board.get_cell_state(x, y).is_mine) {
+              cell.textContent = "💣";
+            }
+          }
+        }
+      }
+
+      run();
+    </script>
+  </body>
+</html>
