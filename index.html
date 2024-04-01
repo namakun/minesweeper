@@ -26,6 +26,26 @@
         background-color: #dfdfdf;
       }
 
+      #gameOver {
+        font-size: 24px;
+        position: absolute;
+        top: 55%;
+        color: red;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        visibility: hidden;
+      }
+
+      #gameClear {
+        font-size: 24px;
+        position: absolute;
+        top: 55%;
+        color: green;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        visibility: hidden;
+      }
+
       /* 各セルのスタイル */
       .cell {
         display: inline-flex;
@@ -46,8 +66,8 @@
     <h1>Minesweeper Game</h1>
     <button id="restartButton">Restart Game</button>
     <div id="game"></div>
-    <div id="gameOverMessage" style="visibility: hidden; color: red; font-size: 24px; position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%)">Game Over!</div>
-    <div id="gameClearMessage" style="visibility: hidden; color: green; font-size: 24px; position: absolute; top: 55%; left: 50%; transform: translate(-50%, -50%)">Game Clear!</div>
+    <div id="gameOver">Game Over!</div>
+    <div id="gameClear">Game Clear!</div>
 
     <script type="module">
       import init, { Board } from "./pkg/minesweeper.js";
@@ -68,6 +88,12 @@
         firstClick = true;
         gameOver = false;
         updateUI(board);
+        // game overメッセージを非表示にする
+        const gameOverMessage = document.getElementById("gameOver");
+        gameOverMessage.style.visibility = "hidden";
+        // game clearメッセージを非表示にする
+        const gameClearMessage = document.getElementById("gameClear");
+        gameClearMessage.style.visibility = "hidden";
       }
 
       function updateUI(board) {
@@ -142,14 +168,14 @@
         if (board.is_game_over()) {
           gameOver = true; // ゲームオーバー状態を更新
           revealMines(board); // すべての地雷を表示する関数を呼び出す
-          const gameOverMessage = document.getElementById("gameOverMessage");
+          const gameOverMessage = document.getElementById("gameOver");
           gameOverMessage.style.visibility = "visible"; // メッセージを表示
         }
 
         if (!gameOver && board.check_win()) {
           // ゲームオーバーでない、かつ勝利条件を満たす場合
           // ゲームクリアメッセージを表示するロジックをここに追加
-          const gameClearMessage = document.getElementById("gameClearMessage");
+          const gameClearMessage = document.getElementById("gameClear");
           gameClearMessage.style.visibility = "visible"; // ゲームクリアメッセージを表示
         }
       }
