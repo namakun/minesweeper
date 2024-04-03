@@ -50,11 +50,9 @@
       #gameOver,
       #gameClear {
         font-size: 24px;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
+        margin-top: 20px;
         visibility: hidden;
+        color: red;
       }
 
       #gameOver {
@@ -84,9 +82,9 @@
       <h1>Minesweeper Game</h1>
       <button id="restartButton">Restart Game</button>
       <div id="game"></div>
+      <div id="gameOver">Game Over!</div>
+      <div id="gameClear">Game Clear!</div>
     </div>
-    <div id="gameOver">Game Over!</div>
-    <div id="gameClear">Game Clear!</div>
 
     <script type="module">
       import init, { Board } from "./minesweeper.js";
