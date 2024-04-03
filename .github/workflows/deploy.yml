@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -21,12 +21,12 @@ jobs:
       - name: Build WASM
         run: |
           cargo install wasm-pack
-          wasm-pack build --target web --out-name wasm --out-dir ./static
+          wasm-pack build --target web
+
       - name: Deploy Github Pages
         uses: actions/upload-pages-artifact@v1
         with:
           path: build
-
 
 deploy:
   needs: build
