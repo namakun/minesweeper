@@ -44,8 +44,8 @@ h1 {
 #gameOver,
 #gameClear {
   position: absolute;
+  top: calc(100% + 10px);
   font-size: 24px;
-  margin-top: 20px;
   visibility: hidden;
   color: red;
 }
