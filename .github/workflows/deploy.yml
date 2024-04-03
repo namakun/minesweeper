@@ -26,8 +26,10 @@ jobs:
       - name: Additional files
         run: |
           mkdir -p _site
-          cp index.html _site/
-          cp favicon.png _site/
+          cp web/index.html _site/
+          cp web/style.css _site/
+          cp web/script.js _site/
+          cp web/favicon.png _site/
 
       - name: Deploy to GitHub Pages
         uses: actions/upload-pages-artifact@v1
