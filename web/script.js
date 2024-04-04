@@ -12,7 +12,7 @@ async function run() {
 }
 
 function restartGame() {
-  board = Board.new(9, 9);
+  board = Board.new(8, 15);
   firstClick = true;
   gameOver = false;
   updateUI(board);
@@ -26,11 +26,11 @@ function updateUI(board) {
   const gameContainer = document.getElementById("game");
   gameContainer.innerHTML = "";
 
-  for (let y = 0; y < 9; y++) {
+  for (let y = 0; y < 15; y++) {
     const rowDiv = document.createElement("div");
     rowDiv.style.display = "flex";
 
-    for (let x = 0; x < 9; x++) {
+    for (let x = 0; x < 8; x++) {
       const cellDiv = document.createElement("div");
       cellDiv.classList.add("cell");
 
@@ -89,14 +89,15 @@ function updateCellUI(x, y) {
 
 function handleFlagToggle(cellDiv, cellState) {
   if (cellState.is_flagged) {
-    cellDiv.textContent = "🚩"; // 旗を表示
+    cellDiv.textContent = "🚩";
   } else {
     cellDiv.textContent = cellState.is_open ? cellState.mines_around.toString() : "";
   }
 }
 
 function handleCellClick(board, x, y, cellDiv) {
-  const changedCells = board.open_cell(x, y);
+  const minesCount = 15;
+  const changedCells = board.open_cell(x, y, minesCount);
   changedCells.forEach((cell) => {
     updateCellUI(cell.x, cell.y);
   });
@@ -108,18 +109,20 @@ function handleCellClick(board, x, y, cellDiv) {
     gameOverMessage.style.visibility = "visible";
   }
 
-  if (!gameOver && board.check_win()) {
+  if (!gameOver && board.is_game_clear()) {
     const gameClearMessage = document.getElementById("gameClear");
     gameClearMessage.style.visibility = "visible";
   }
 }
 
 function revealMines(board) {
-  for (let y = 0; y < 9; y++) {
-    for (let x = 0; x < 9; x++) {
-      const cell = document.querySelector(`#game div:nth-child(${y + 1}) div:nth-child(${x + 1})`);
+  for (let y = 0; y < 15; y++) {
+    for (let x = 0; x < 8; x++) {
       if (board.get_cell_state(x, y).is_mine) {
+        board.open_cell(x, y);
+        const cell = document.querySelector(`#game div:nth-child(${y + 1}) div:nth-child(${x + 1})`);
         cell.textContent = "💣";
+        cell.style.backgroundColor = "#bfbfbf";
       }
     }
   }

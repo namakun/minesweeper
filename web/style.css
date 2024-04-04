@@ -32,9 +32,10 @@ h1 {
 }
 
 #game {
-  width: 270px;
-  height: 270px;
+  width: 240px;
+  height: 450px;
   display: flex;
+  flex-wrap: wrap;
   flex-direction: column;
   justify-content: center;
   background-color: #dfdfdf;
