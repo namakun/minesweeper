@@ -7,6 +7,10 @@ body {
   background-color: black;
 }
 
+h1 {
+  color: white;
+}
+
 .container {
   display: flex;
   flex-direction: column;
@@ -16,47 +20,14 @@ body {
   color: white;
 }
 
-h1 {
-  color: white;
-}
-
-#restartButton {
-  font-size: 18px;
-  padding: 10px 20px;
-  margin-bottom: 20px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-  background-color: #4caf50;
-  color: white;
-}
-
 #game {
   width: 240px;
   height: 450px;
   display: flex;
-  flex-wrap: wrap;
   flex-direction: column;
   justify-content: center;
   background-color: #dfdfdf;
   margin: 20px 0;
-}
-
-#gameOver,
-#gameClear {
-  position: absolute;
-  top: calc(100% + 10px);
-  font-size: 24px;
-  visibility: hidden;
-  color: red;
-}
-
-#gameOver {
-  color: red;
-}
-
-#gameClear {
-  color: green;
 }
 
 .cell {
@@ -71,3 +42,44 @@ h1 {
   background-color: #dfdfdf;
   color: #fff;
 }
+
+#restartButton {
+  font-size: 18px;
+  padding: 10px 20px;
+  margin-bottom: 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  background-color: #4caf50;
+  color: white;
+}
+
+#gameOver,
+#gameClear {
+  position: absolute;
+  top: calc(100% + 10px);
+  font-size: 24px;
+  visibility: hidden;
+}
+
+#gameOver {
+  color: red;
+}
+
+#gameClear {
+  color: green;
+}
+
+.cell-open {
+  background-color: #bfbfbf;
+  color: black;
+}
+
+.cell-flagged {
+  color: #fff;
+}
+
+.cell-1 { color: blue; }
+.cell-2 { color: green; }
+.cell-3 { color: red; }
+.cell-4 { color: purple; }

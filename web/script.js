@@ -1,128 +1,128 @@
 import init, { Board } from "./minesweeper.js";
 
+// 定数と設定
+const GAME_SETTINGS = {
+  width: 8,
+  height: 15,
+  minesCount: 15,
+};
+
+// ゲームの状態
 let board;
-let firstClick = true;
 let gameOver = false;
 
-document.getElementById("restartButton").addEventListener("click", restartGame);
-
+// 初期化関数
 async function run() {
   await init();
   restartGame();
 }
 
-function restartGame() {
-  board = Board.new(8, 15);
-  firstClick = true;
-  gameOver = false;
-  updateUI(board);
-  const gameOverMessage = document.getElementById("gameOver");
-  gameOverMessage.style.visibility = "hidden";
-  const gameClearMessage = document.getElementById("gameClear");
-  gameClearMessage.style.visibility = "hidden";
+// UIの初期化とイベントリスナーの設定
+function setupUI() {
+  document.getElementById("restartButton").addEventListener("click", restartGame);
+  updateUI();
 }
 
-function updateUI(board) {
+// ゲームの再開始
+function restartGame() {
+  board = Board.new(GAME_SETTINGS.width, GAME_SETTINGS.height);
+  gameOver = false;
+  setupUI();
+  document.getElementById("gameOver").style.visibility = "hidden";
+  document.getElementById("gameClear").style.visibility = "hidden";
+}
+
+// UIの更新
+function updateUI() {
   const gameContainer = document.getElementById("game");
   gameContainer.innerHTML = "";
-
-  for (let y = 0; y < 15; y++) {
+  for (let y = 0; y < GAME_SETTINGS.height; y++) {
     const rowDiv = document.createElement("div");
     rowDiv.style.display = "flex";
-
-    for (let x = 0; x < 8; x++) {
-      const cellDiv = document.createElement("div");
-      cellDiv.classList.add("cell");
-
-      cellDiv.addEventListener("click", (e) => {
-        e.preventDefault();
-        if (gameOver || board.get_cell_state(x, y).is_flagged) return;
-        if (!board.get_cell_state(x, y).is_open) {
-          handleCellClick(board, x, y, cellDiv);
-        }
-      });
-
-      cellDiv.addEventListener("contextmenu", (e) => {
-        e.preventDefault();
-        if (gameOver) return;
-        if (!board.get_cell_state(x, y).is_open) {
-          board.toggle_flag(x, y);
-          handleFlagToggle(cellDiv, board.get_cell_state(x, y));
-        }
-      });
-
-      rowDiv.appendChild(cellDiv);
+    for (let x = 0; x < GAME_SETTINGS.width; x++) {
+      rowDiv.appendChild(createCellElement(x, y));
     }
     gameContainer.appendChild(rowDiv);
   }
 }
-function updateCellUI(x, y) {
-  const cellState = board.get_cell_state(x, y);
-  const cellDiv = document.querySelector(`#game div:nth-child(${y + 1}) div:nth-child(${x + 1})`);
 
-  if (cellState.is_open) {
-    const minesAround = board.count_mines_around(x, y);
-    cellDiv.textContent = minesAround > 0 ? minesAround : "";
-    cellDiv.style.backgroundColor = "#bfbfbf";
-
-    switch (minesAround) {
-      case 1:
-        cellDiv.style.color = "blue";
-        break;
-      case 2:
-        cellDiv.style.color = "green";
-        break;
-      case 3:
-        cellDiv.style.color = "red";
-        break;
-      case 4:
-        cellDiv.style.color = "purple";
-        break;
-      default:
-        cellDiv.style.color = "black";
-    }
-  }
-
-  // 旗が立っている場合の処理もここに追加
-  // ...
-}
-
-function handleFlagToggle(cellDiv, cellState) {
-  if (cellState.is_flagged) {
-    cellDiv.textContent = "🚩";
-  } else {
-    cellDiv.textContent = cellState.is_open ? cellState.mines_around.toString() : "";
-  }
-}
-
-function handleCellClick(board, x, y, cellDiv) {
-  const minesCount = 15;
-  const changedCells = board.open_cell(x, y, minesCount);
-  changedCells.forEach((cell) => {
-    updateCellUI(cell.x, cell.y);
+// セル要素の作成
+function createCellElement(x, y) {
+  const cellDiv = document.createElement("div");
+  cellDiv.classList.add("cell");
+  cellDiv.addEventListener("click", (e) => {
+    e.preventDefault();
+    if (gameOver || board.get_cell_state(x, y).is_flagged) return;
+    handleCellClick(x, y);
   });
+  cellDiv.addEventListener("contextmenu", (e) => {
+    e.preventDefault();
+    toggleFlag(x, y, cellDiv);
+  });
+  return cellDiv;
+}
 
+// セルのクリック処理
+function handleCellClick(x, y) {
+  const changedCells = board.open_cell(x, y, GAME_SETTINGS.minesCount);
+  changedCells.forEach(({ x, y }) => {
+    const minesAround = board.count_mines_around(x, y);
+    updateCellUI(x, y, minesAround);
+  });
+  checkGameState();
+}
+
+// 旗の切り替え
+function toggleFlag(x, y, cellDiv) {
+  if (gameOver) return;
+  board.toggle_flag(x, y);
+  handleFlagToggle(cellDiv, board.get_cell_state(x, y));
+}
+
+// ゲーム状態の確認
+function checkGameState() {
   if (board.is_game_over()) {
     gameOver = true;
-    revealMines(board);
-    const gameOverMessage = document.getElementById("gameOver");
-    gameOverMessage.style.visibility = "visible";
-  }
-
-  if (!gameOver && board.is_game_clear()) {
-    const gameClearMessage = document.getElementById("gameClear");
-    gameClearMessage.style.visibility = "visible";
+    revealMines();
+    document.getElementById("gameOver").style.visibility = "visible";
+  } else if (board.is_game_clear()) {
+    document.getElementById("gameClear").style.visibility = "visible";
   }
 }
 
-function revealMines(board) {
-  for (let y = 0; y < 15; y++) {
-    for (let x = 0; x < 8; x++) {
-      if (board.get_cell_state(x, y).is_mine) {
-        board.open_cell(x, y);
-        const cell = document.querySelector(`#game div:nth-child(${y + 1}) div:nth-child(${x + 1})`);
-        cell.textContent = "💣";
-        cell.style.backgroundColor = "#bfbfbf";
+// セルUIの更新
+function updateCellUI(x, y, minesAround) {
+  const cellState = board.get_cell_state(x, y);
+  const cellDiv = document.querySelector(`#game div:nth-child(${y + 1}) div:nth-child(${x + 1})`);
+  cellDiv.className = 'cell';
+  if (cellState.is_open) {
+    cellDiv.classList.add('cell-open');
+    cellDiv.textContent = minesAround > 0 ? minesAround : "";
+    if (minesAround > 0) {
+      cellDiv.classList.add(`cell-${minesAround}`);
+    }
+  } else if (cellState.is_flagged) {
+    cellDiv.textContent = "🚩";
+    cellDiv.classList.add('cell-flagged');
+  } else {
+    cellDiv.textContent = "";
+  }
+}
+
+// 旗のUI更新
+function handleFlagToggle(cellDiv, cellState) {
+  cellDiv.textContent = cellState.is_flagged ? "🚩" : "";
+}
+
+// 地雷の公開
+function revealMines() {
+  for (let y = 0; y < GAME_SETTINGS.height; y++) {
+    for (let x = 0; x < GAME_SETTINGS.width; x++) {
+      const cellState = board.get_cell_state(x, y);
+      if (cellState.is_mine) {
+        const cellDiv = document.querySelector(`#game div:nth-child(${y + 1}) div:nth-child(${x + 1})`);
+        cellDiv.textContent = "💣";
+        cellDiv.classList.add('cell-open');
       }
     }
   }
